@@ -21,7 +21,6 @@ Revision History:
 #pragma once
 
 #include "DbcsAttribute.hpp"
-#include "CharRowCellReference.hpp"
 #include "CharRowCell.hpp"
 #include "UnicodeStorage.hpp"
 #include "boost/container/small_vector.hpp"
@@ -53,7 +52,6 @@ public:
     using iterator = typename boost::container::small_vector_base<value_type>::iterator;
     using const_iterator = typename boost::container::small_vector_base<value_type>::const_iterator;
     using const_reverse_iterator = typename boost::container::small_vector_base<value_type>::const_reverse_iterator;
-    using reference = typename CharRowCellReference;
 
     CharRow(size_t rowWidth, ROW* const pParent) noexcept;
 
@@ -69,8 +67,7 @@ public:
     const DelimiterClass DelimiterClassAt(const size_t column, const std::wstring_view wordDelimiters) const;
 
     // working with glyphs
-    const reference GlyphAt(const size_t column) const;
-    reference GlyphAt(const size_t column);
+    const std::wstring_view GlyphDataAt(const size_t column) const;
 
     // iterators
     iterator begin() noexcept;
@@ -85,7 +82,6 @@ public:
 
     void UpdateParent(ROW* const pParent);
 
-    friend CharRowCellReference;
     friend bool operator==(const CharRow& a, const CharRow& b) noexcept;
     friend class ROW;
 
@@ -93,6 +89,7 @@ private:
     void Reset() noexcept;
     void ClearCell(const size_t column);
     std::wstring GetText() const;
+    void WriteCharsIntoColumn(size_t column, const std::wstring_view chars);
 
 protected:
     // storage for glyph data and dbcs attributes
