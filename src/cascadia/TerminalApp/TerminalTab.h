@@ -103,6 +103,9 @@ namespace winrt::TerminalApp::implementation
 
         winrt::TerminalApp::ShortcutActionDispatch _dispatch;
 
+        bool _unreadBuffer{ false };
+        winrt::Windows::UI::Xaml::Media::SolidColorBrush _fontBrush{ winrt::Windows::UI::Colors::Black() };
+
         void _MakeTabViewItem();
 
         winrt::fire_and_forget _UpdateHeaderControlMaxWidth();
@@ -124,6 +127,8 @@ namespace winrt::TerminalApp::implementation
         void _RecalculateAndApplyTabColor();
         void _ApplyTabColor(const winrt::Windows::UI::Color& color);
         void _ClearTabBackgroundColor();
+
+        void _ToggleTabForegroundColor();
 
         friend class ::TerminalAppLocalTests::TabTests;
     };

@@ -152,6 +152,9 @@ namespace winrt::TerminalApp::implementation
                 lastFocusedControl.Focus(_focusState);
                 lastFocusedControl.TaskbarProgressChanged();
             }
+
+            if (_unreadBuffer)
+                _ToggleTabForegroundColor();
         }
     }
 
@@ -470,6 +473,20 @@ namespace winrt::TerminalApp::implementation
     void TerminalTab::_AttachEventHandlersToControl(const TermControl& control)
     {
         auto weakThis{ get_weak() };
+
+        // This is called when the terminal has new data in its output buffer.
+        // If the tab is not the current active (focused) tab then it will
+        // toggle the tab text foreground color to red to indicate there is
+        // new information in this tab to the user
+        control.BufferUpdated([weakThis](auto&&, auto&&) {
+            if (auto tab{ weakThis.get() })
+            {
+                if (tab->_focusState == FocusState::Unfocused && !tab->_unreadBuffer)
+                {
+                    tab->_ToggleTabForegroundColor();
+                }
+            }
+        });
 
         control.TitleChanged([weakThis](auto newTitle) {
             // Check if Tab's lifetime has expired
@@ -853,6 +870,7 @@ namespace winrt::TerminalApp::implementation
 
         _RefreshVisualState();
 
+        _fontBrush = fontBrush;
         _colorSelected(color);
     }
 
@@ -903,6 +921,50 @@ namespace winrt::TerminalApp::implementation
 
         _RefreshVisualState();
         _colorCleared();
+    }
+
+    
+    // Method Description:
+    // - Toggles the tab foreground color between normal and red. This function is
+    //   called when the output buffer has been updated and the tab is not the current
+    //   active tab. This works as an indicator to the user that the tab has new
+    //   information.
+    // Arguments:
+    // - <none>
+    // Return Value:
+    // - <none>
+    void TerminalTab::_ToggleTabForegroundColor()
+    {
+        auto weakThis{ get_weak() };
+
+        TabViewItem().Dispatcher().RunAsync(CoreDispatcherPriority::Normal, [weakThis]() {
+            auto ptrTab = weakThis.get();
+            if (!ptrTab)
+                return;
+
+            auto tab{ ptrTab };
+
+            tab->_unreadBuffer = !tab->_unreadBuffer;
+            Media::SolidColorBrush fontBrush{};
+
+            if (tab->_unreadBuffer)
+            {
+                fontBrush.Color(winrt::Windows::UI::Colors::Red());
+            }
+            else
+            {
+                fontBrush = tab->_fontBrush;
+            }
+
+            tab->TabViewItem().Resources().Insert(winrt::box_value(L"TabViewItemHeaderForeground"), fontBrush);
+            tab->TabViewItem().Resources().Insert(winrt::box_value(L"TabViewItemHeaderForegroundSelected"), fontBrush);
+            tab->TabViewItem().Resources().Insert(winrt::box_value(L"TabViewItemHeaderForegroundPointerOver"), fontBrush);
+            tab->TabViewItem().Resources().Insert(winrt::box_value(L"TabViewItemHeaderForegroundPressed"), fontBrush);
+            tab->TabViewItem().Resources().Insert(winrt::box_value(L"TabViewButtonForegroundActiveTab"), fontBrush);
+            tab->TabViewItem().Resources().Insert(winrt::box_value(L"TabViewButtonForegroundPressed"), fontBrush);
+            tab->TabViewItem().Resources().Insert(winrt::box_value(L"TabViewButtonForegroundPointerOver"), fontBrush);
+            tab->_RefreshVisualState();
+        });
     }
 
     // Method Description:

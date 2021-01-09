@@ -353,6 +353,14 @@ try
 }
 CATCH_LOG_RETURN_FALSE()
 
+bool Terminal::BufferUpdated() noexcept
+try
+{
+    _pfnBufferUpdated();
+    return true;
+}
+CATCH_LOG_RETURN_FALSE()
+
 bool Terminal::SetWindowTitle(std::wstring_view title) noexcept
 try
 {

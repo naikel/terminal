@@ -392,6 +392,8 @@ void Terminal::Write(std::wstring_view stringView)
     auto lock = LockForWriting();
 
     _stateMachine->ProcessString(stringView);
+
+    BufferUpdated();
 }
 
 // Method Description:
@@ -1070,6 +1072,12 @@ void Terminal::SetWriteInputCallback(std::function<void(std::wstring&)> pfn) noe
 {
     _pfnWriteInput.swap(pfn);
 }
+
+void Terminal::SetBufferUpdatedCallback(std::function<void()> pfn) noexcept
+{
+    _pfnBufferUpdated.swap(pfn);
+}
+
 
 void Terminal::SetWarningBellCallback(std::function<void()> pfn) noexcept
 {

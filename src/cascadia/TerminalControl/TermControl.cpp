@@ -86,6 +86,9 @@ namespace winrt::Microsoft::Terminal::TerminalControl::implementation
 
         _terminal = std::make_unique<::Microsoft::Terminal::Core::Terminal>();
 
+        auto pfnBufferUpdated = std::bind(&TermControl::_TerminalBufferUpdated, this);
+        _terminal->SetBufferUpdatedCallback(pfnBufferUpdated);
+
         auto pfnWarningBell = std::bind(&TermControl::_TerminalWarningBell, this);
         _terminal->SetWarningBellCallback(pfnWarningBell);
 
@@ -2380,6 +2383,11 @@ namespace winrt::Microsoft::Terminal::TerminalControl::implementation
         {
             _connection.Resize(vp.Height(), vp.Width());
         }
+    }
+
+    void TermControl::_TerminalBufferUpdated()
+    {
+        _BufferUpdatedHandlers(*this, nullptr);
     }
 
     void TermControl::_TerminalWarningBell()
